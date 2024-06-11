@@ -20,8 +20,8 @@ assert len(bns_test)==2000, 'missing ATD test data'
 # load models and metrics
 ssl = models.SoftsplatLite()
 dtm = models.DTM()
-ssl.load_state_dict(torch.load('./checkpoints/ssl.pt'))
-dtm.load_state_dict(torch.load('./checkpoints/dtm.pt'))
+ssl.load_state_dict(torch.load('./checkpoints/ssl_judith.pt'))
+dtm.load_state_dict(torch.load('./checkpoints/dtm_judith.pt'))
 ssl = ssl.to(device).eval()
 dtm = dtm.to(device).eval()
 metrics = torchmetrics.MetricCollection({

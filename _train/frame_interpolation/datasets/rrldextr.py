@@ -1,12 +1,9 @@
 
 
-
 from _util.util_v0 import * ; import _util.util_v0 as util
 from _util.twodee_v0 import * ; import _util.twodee_v0 as u2d
 from _util.pytorch_v0 import * ; import _util.pytorch_v0 as utorch
-
 import _util.flow_v0 as uflow
-
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, dk, deterministic):
@@ -41,20 +38,20 @@ class Dataset(torch.utils.data.Dataset):
         rev = False
         if not det:
             # flip horizontal
-            if np.random.rand()<0.5:
+            if np.random.rand() < 0.5:
                 flip = True
                 imgs = imgs.flip(dims=(-1,))
                 if use_flow:
                     flows = flows.flip(dims=(-1,))
-                    flows[:,1] *= -1
+                    flows[:, 1] *= -1
 
             # reverse sequence
-            if np.random.rand()<0.5:
+            if np.random.rand() < 0.5:
                 rev = True
                 imgs = imgs.flip(dims=(0,))
                 if use_flow:
                     flows = flows.flip(dims=(0,))
-        
+
         # package
         ans = {
             'bn': bn,
@@ -85,6 +82,7 @@ class Datamodule(pl.LightningDataModule):
             ds, batch_size=self.bs,
             shuffle=True, num_workers=self.num_workers,
             drop_last=False,
+            persistent_workers=True,
         )
         return dl
     def val_dataloader(self):
@@ -96,6 +94,7 @@ class Datamodule(pl.LightningDataModule):
             ds, batch_size=self.bs,
             shuffle=False, num_workers=self.num_workers,
             drop_last=False,
+            persistent_workers=True,
         )
         return dl
     def test_dataloader(self):
@@ -107,8 +106,13 @@ class Datamodule(pl.LightningDataModule):
             ds, batch_size=self.bs,
             shuffle=False, num_workers=self.num_workers,
             drop_last=False,
+            persistent_workers=True,
         )
         return dl
+
+# Additional configuration for CuDNN and PyTorch
+torch.backends.cudnn.benchmark = False
+
 
 
 

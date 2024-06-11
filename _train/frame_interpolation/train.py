@@ -21,15 +21,16 @@ args = ap.parse_args()
 from _train.frame_interpolation.models.trainmodel import TrainModel
 model = TrainModel()
 
+# Load the pre-trained weights for SSL and DTM
+model.ssl.load_state_dict(torch.load('./checkpoints/ssl.pt'))
+model.dtm.load_state_dict(torch.load('./checkpoints/dtm.pt'))
+
 from _train.frame_interpolation.datasets.rrldextr import Datamodule
 dm = Datamodule(args.dataset, bs=4)
 
 trainer = pl.Trainer(
     precision=16,
-    # fast_dev_run=True,
-    # limit_train_batches=4,
-    # limit_val_batches=4,
-    # limit_test_batches=4,
+    max_epochs=400,
     gradient_clip_val=1.0,
 
     default_root_dir=mkdir(args.output),
@@ -38,6 +39,8 @@ trainer = pl.Trainer(
     gpus=1,
     accumulate_grad_batches=8,
 
+    log_every_n_steps=10,
+    
     callbacks=[pl.callbacks.ModelCheckpoint(
         monitor='val_lpips',
         mode='min',
@@ -54,16 +57,21 @@ trainer = pl.Trainer(
         default_hp_metric=True,
         prefix='',
     )],
-    
     terminate_on_nan=True,
 )
 
-trainer.fit(
-    model,
-    datamodule=dm,
-)
+# Training wrapped in a try-except block to handle errors
+try:
+    trainer.fit(
+        model,
+        datamodule=dm,
+    )
+except Exception as e:
+    print(f"Error durante el entrenamiento: {e}")
 
 
+torch.save(model.ssl.state_dict(), './checkpoints/ssl_judith.pt')
+torch.save(model.dtm.state_dict(), './checkpoints/dtm_judith.pt')
 
 
 
